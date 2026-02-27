@@ -1,0 +1,111 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: timevault_db
+    environment:
+      POSTGRES_USER: timevault_user
+      POSTGRES_PASSWORD: timevault_pass
+      POSTGRES_DB: timevault
+    ports:
+      - "45432:5432"
+    volumes:
+      - timevault_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timevault_user -d timevault"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - timevault_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: timevault_redis
+    ports:
+      - "46379:6379"
+    volumes:
+      - timevault_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - timevault_network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: timevault_api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "48000:8000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - timevault_network
+
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: timevault_celery_worker
+    command: celery -A app.celery_app:celery_app worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - timevault_network
+
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: timevault_celery_beat
+    command: celery -A app.celery_app:celery_app beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - timevault_network
+
+  adminer:
+    image: adminer
+    container_name: timevault_adminer
+    ports:
+      - "48080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - timevault_network
+
+volumes:
+  timevault_pgdata:
+  timevault_redisdata:
+
+networks:
+  timevault_network:
+    driver: bridge
