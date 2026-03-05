@@ -3,7 +3,7 @@
 Provides a class-based interface for encrypting and decrypting capsule content.
 """
 
-from app.core.encryption import decrypt_content, encrypt_content
+from app.auth.encryption import decrypt_content, encrypt_content
 
 
 class EncryptionService:

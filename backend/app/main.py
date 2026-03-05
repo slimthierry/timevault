@@ -3,10 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import router as api_router
+from app.loggers import setup_logging
+from app.routes import app_router
 from app.config.settings import settings
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler for startup and shutdown."""
@@ -16,8 +15,6 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     print(f"Shutting down {settings.APP_NAME}")
-
-
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
@@ -36,8 +33,6 @@ app.add_middleware(
 
 # Include API router
 app.include_router(api_router)
-
-
 @app.get("/health", tags=["Health"])
 async def health_check():
     """Health check endpoint."""

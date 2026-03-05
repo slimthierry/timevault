@@ -5,8 +5,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.encryption import decrypt_content, encrypt_content
-from app.core.exceptions import (
+from app.auth.encryption import decrypt_content, encrypt_content
+from app.auth.exceptions import (
     CapsuleAlreadyOpenedError,
     CapsuleLockedError,
     CapsuleNotFoundError,

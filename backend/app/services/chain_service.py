@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import CapsuleNotFoundError, ChainNotFoundError
+from app.auth.exceptions import CapsuleNotFoundError, ChainNotFoundError
 from app.models.capsule_models import Capsule
 from app.models.chain_models import CapsuleChain
 from app.models.user_models import User
